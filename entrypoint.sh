@@ -34,9 +34,10 @@ hindsight-embed profile create "${HINDSIGHT_BANK_ID}" --port "${HINDSIGHT_PORT}"
   ${HINDSIGHT_LLM_BASE_URL:+  --env "LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}"} \
   --merge || true
 
-# ── Start daemon (foreground so errors are visible) ────────────────
-echo "[entrypoint] Starting daemon ..."
-hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon start 2>&1
+# ── Start daemon (background, TUI blocks in non-tty containers) ───
+echo "[entrypoint] Starting daemon in background ..."
+hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon start >/tmp/daemon-start.log 2>&1 &
+DAEMON_PID=$!
 
 # ── Wait for daemon (up to 5 min for first-time deps download) ────
 DAEMON_OK=false
@@ -52,11 +53,19 @@ for i in $(seq 1 300); do
   sleep 1
 done
 
+# Kill background process if still running
+kill $DAEMON_PID 2>/dev/null || true
+
 if [ "$DAEMON_OK" != "true" ]; then
   echo "[entrypoint] ERROR: Daemon did not start within 5 minutes."
+  if [ -f /tmp/daemon-start.log ]; then
+    echo "[entrypoint] --- Daemon start log ---"
+    tail -n 50 /tmp/daemon-start.log
+    echo "[entrypoint] --- End log ---"
+  fi
   LOGFILE="${HOME}/.hindsight/profiles/${HINDSIGHT_BANK_ID}.log"
   if [ -f "$LOGFILE" ]; then
-    echo "[entrypoint] --- Log tail ---"
+    echo "[entrypoint] --- Hindsight log tail ---"
     tail -n 50 "$LOGFILE"
     echo "[entrypoint] --- End log ---"
   fi

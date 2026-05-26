@@ -1,0 +1,44 @@
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Core deps for hindsight-api-slim (Ollama-only, no cloud LLM bloat)
+RUN pip install --no-cache-dir \
+    fastapi[standard]>=0.120.3 \
+    sqlalchemy>=2.0.44 \
+    asyncpg>=0.29.0 \
+    psycopg2-binary>=2.9.11 \
+    alembic>=1.17.1 \
+    pydantic>=2.0.0 \
+    httpx>=0.27.0 \
+    typer>=0.9.0 \
+    rich>=13.0.0 \
+    python-dotenv>=1.0.0 \
+    cryptography>=46.0.6,<47 \
+    pgvector>=0.4.1 \
+    orjson>=3.11.6 \
+    uv
+
+# Install hindsight packages (slim API + embed + client)
+RUN pip install --no-cache-dir \
+    hindsight-api-slim==0.6.2 \
+    hindsight-embed==0.6.2 \
+    hindsight-client==0.6.2
+
+# Prepare directories (will be owned by root, entrypoint handles chown)
+RUN mkdir -p /opt/hindsight /opt/hindsight-data/home/.hindsight \
+    && useradd -m -d /opt/hindsight-data/home hindsight || true
+
+ENV HOME=/opt/hindsight-data/home
+ENV HINDSIGHT_DATA_DIR=/opt/hindsight-data
+
+COPY entrypoint.sh /opt/hindsight/entrypoint.sh
+RUN chmod +x /opt/hindsight/entrypoint.sh
+
+WORKDIR /opt/hindsight-data
+
+EXPOSE 8888
+
+ENTRYPOINT ["/opt/hindsight/entrypoint.sh"]
