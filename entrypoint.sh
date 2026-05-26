@@ -38,20 +38,28 @@ hindsight-embed profile create "${HINDSIGHT_BANK_ID}" --port "${HINDSIGHT_PORT}"
 echo "[entrypoint] Starting daemon ..."
 hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon start 2>&1
 
-# ── Wait for daemon ─────────────────────────────────────────────
+# ── Wait for daemon (up to 5 min for first-time deps download) ────
 DAEMON_OK=false
-for i in $(seq 1 30); do
+for i in $(seq 1 300); do
   if hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon status 2>/dev/null | grep -q "running"; then
     echo "[entrypoint] Daemon is running."
     DAEMON_OK=true
     break
   fi
-  echo "[entrypoint] Waiting for daemon... ($i/30)"
+  if [ $((i % 10)) -eq 0 ]; then
+    echo "[entrypoint] Waiting for daemon... (${i}s / 300s)"
+  fi
   sleep 1
 done
 
 if [ "$DAEMON_OK" != "true" ]; then
-  echo "[entrypoint] ERROR: Daemon did not start. Aborting container."
+  echo "[entrypoint] ERROR: Daemon did not start within 5 minutes."
+  LOGFILE="${HOME}/.hindsight/profiles/${HINDSIGHT_BANK_ID}.log"
+  if [ -f "$LOGFILE" ]; then
+    echo "[entrypoint] --- Log tail ---"
+    tail -n 50 "$LOGFILE"
+    echo "[entrypoint] --- End log ---"
+  fi
   exit 1
 fi
 
