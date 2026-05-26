@@ -31,4 +31,5 @@
   <Config Name="Recall Budget" Target="HINDSIGHT_RECALL_BUDGET" Default="mid" Mode="" Description="Recall thoroughness: low/mid/high" Type="Variable" Display="advanced" Required="false" Mask="false">mid</Config>
   <Config Name="Auto Recall" Target="HINDSIGHT_AUTO_RECALL" Default="true" Mode="" Description="Auto-recall memories before each turn" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
   <Config Name="Auto Retain" Target="HINDSIGHT_AUTO_RETAIN" Default="true" Mode="" Description="Auto-retain conversation turns" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="Daemon Startup Timeout" Target="HINDSIGHT_EMBED_DAEMON_STARTUP_TIMEOUT" Default="300" Mode="" Description="Seconds to wait for daemon on first run (deps download)" Type="Variable" Display="advanced" Required="false" Mask="false">300</Config>
 </Container>
