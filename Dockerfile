@@ -4,12 +4,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install hindsight server + client + API daemon
+# Install hindsight client libraries + uv (for uvx)
 RUN pip install --no-cache-dir \
     hindsight-client==0.6.2 \
     hindsight-embed==0.6.2 \
-    hindsight-api==0.6.2 \
-    uv
+    uv \
+    && ln -s $(which uv) /usr/local/bin/uvx
 
 # Prepare directories (will be owned by root, entrypoint handles chown)
 RUN mkdir -p /opt/hindsight /opt/hindsight-data/home/.hindsight \
