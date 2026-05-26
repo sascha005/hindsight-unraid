@@ -6,7 +6,7 @@ set -uo pipefail
 : "${HINDSIGHT_LLM_PROVIDER:=ollama}"
 : "${HINDSIGHT_LLM_MODEL:=gemma3}"
 : "${HINDSIGHT_LLM_BASE_URL:=}"
-: "${HINDSIGHT_LLM_API_KEY:=}"
+: "${HINDSIGHT_LLM_API_KEY:=not-needed}"
 : "${HINDSIGHT_BANK_ID:=hermes}"
 : "${HINDSIGHT_BANK_MISSION:=}"
 : "${HINDSIGHT_BANK_RETAIN_MISSION:=}"
@@ -31,6 +31,7 @@ echo "[entrypoint] Creating profile '${HINDSIGHT_BANK_ID}' ..."
 hindsight-embed profile create "${HINDSIGHT_BANK_ID}" --port "${HINDSIGHT_PORT}" \
   --env "LLM_PROVIDER=${HINDSIGHT_LLM_PROVIDER}" \
   --env "LLM_MODEL=${HINDSIGHT_LLM_MODEL}" \
+  --env "LLM_API_KEY=${HINDSIGHT_LLM_API_KEY}" \
   ${HINDSIGHT_LLM_BASE_URL:+  --env "LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}"} \
   --merge || true
 

@@ -9,6 +9,8 @@ RUN pip install --no-cache-dir \
     hindsight-client==0.6.2 \
     hindsight-embed==0.6.2 \
     hindsight-api==0.6.2 \
+    sentence-transformers>=3.0.0 \
+    torch>=2.0.0 \
     uv
 
 # Prepare directories (will be owned by root, entrypoint handles chown)
