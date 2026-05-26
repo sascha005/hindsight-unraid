@@ -7,10 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install hindsight server + client
 RUN pip install --no-cache-dir hindsight-client==0.6.2 hindsight-embed==0.6.2
 
-# Prepare directories
+# Prepare directories (will be owned by root, entrypoint handles chown)
 RUN mkdir -p /opt/hindsight /opt/hindsight-data/home/.hindsight \
-    && useradd -m -d /opt/hindsight-data/home hindsight \
-    && chown -R hindsight:hindsight /opt/hindsight-data
+    && useradd -m -d /opt/hindsight-data/home hindsight || true
 
 ENV HOME=/opt/hindsight-data/home
 ENV HINDSIGHT_DATA_DIR=/opt/hindsight-data
@@ -18,7 +17,6 @@ ENV HINDSIGHT_DATA_DIR=/opt/hindsight-data
 COPY entrypoint.sh /opt/hindsight/entrypoint.sh
 RUN chmod +x /opt/hindsight/entrypoint.sh
 
-USER hindsight
 WORKDIR /opt/hindsight-data
 
 EXPOSE 8888

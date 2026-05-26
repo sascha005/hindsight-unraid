@@ -19,6 +19,12 @@ set -uo pipefail
 mkdir -p "${HOME}/.hindsight/profiles"
 echo "[entrypoint] Hindsight data dir: ${HOME}/.hindsight"
 
+# Fix permissions: hindsight uid may differ between image and host
+echo "[entrypoint] Fixing permissions on data directory ..."
+chown -R hindsight:hindsight "${HOME}/.hindsight" 2>/dev/null || true
+# Also ensure the user exists if the container was rebuilt
+id hindsight 2>/dev/null || useradd -m -d "${HOME}" hindsight 2>/dev/null || true
+
 # ── Create hindsight profile ─────────────────────────────────────
 echo "[entrypoint] Creating profile '${HINDSIGHT_BANK_ID}' ..."
 # Don't die on failure here — profile may already exist
