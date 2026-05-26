@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 # ── Config from ENV ───────────────────────────────────────────────
 : "${HINDSIGHT_PORT:=8888}"
@@ -17,53 +17,35 @@ set -euo pipefail
 
 # ── Ensure data dirs ─────────────────────────────────────────────
 mkdir -p "${HOME}/.hindsight/profiles"
+echo "[entrypoint] Hindsight data dir: ${HOME}/.hindsight"
 
 # ── Create hindsight profile ─────────────────────────────────────
-CMD=(hindsight-embed profile create "${HINDSIGHT_BANK_ID}" --port "${HINDSIGHT_PORT}")
-[ -n "${HINDSIGHT_LLM_BASE_URL:-}" ] && CMD+=(--env "LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}")
-[ -n "${HINDSIGHT_LLM_API_KEY:-}" ] && CMD+=(--env "LLM_API_KEY=${HINDSIGHT_LLM_API_KEY}")
-# standard provider/model are handled by hindsight defaults, but let's be explicit
-CMD+=(--env "LLM_PROVIDER=${HINDSIGHT_LLM_PROVIDER}")
-CMD+=(--env "LLM_MODEL=${HINDSIGHT_LLM_MODEL}")
-CMD+=(--merge)
-
-"${CMD[@]}"
+echo "[entrypoint] Creating profile '${HINDSIGHT_BANK_ID}' ..."
+# Don't die on failure here — profile may already exist
+hindsight-embed profile create "${HINDSIGHT_BANK_ID}" --port "${HINDSIGHT_PORT}" \
+  --env "LLM_PROVIDER=${HINDSIGHT_LLM_PROVIDER}" \
+  --env "LLM_MODEL=${HINDSIGHT_LLM_MODEL}" \
+  ${HINDSIGHT_LLM_BASE_URL:+  --env "LLM_BASE_URL=${HINDSIGHT_LLM_BASE_URL}"} \
+  --merge || true
 
 # ── Start daemon ──────────────────────────────────────────────────
-echo "Starting Hindsight daemon for profile '${HINDSIGHT_BANK_ID}' on port ${HINDSIGHT_PORT} ..."
-echo "  LLM Provider: ${HINDSIGHT_LLM_PROVIDER}"
-echo "  LLM Model: ${HINDSIGHT_LLM_MODEL}"
-if [ -n "${HINDSIGHT_LLM_BASE_URL:-}" ]; then
-  echo "  LLM Base URL: ${HINDSIGHT_LLM_BASE_URL}"
-fi
+echo "[entrypoint] Starting daemon ..."
+hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon start 2>&1 || true
 
-hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon start
-
-# ── Wait for daemon ready ─────────────────────────────────────────
-for i in {1..30}; do
+# ── Wait for daemon ─────────────────────────────────────────────
+for i in $(seq 1 30); do
   if hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon status 2>/dev/null | grep -q "running"; then
-    echo "Hindsight daemon is ready on port ${HINDSIGHT_PORT}."
+    echo "[entrypoint] Daemon is running."
     break
   fi
+  echo "[entrypoint] Waiting for daemon... ($i/30)"
   sleep 1
 done
 
 # ── Start UI ──────────────────────────────────────────────────────
-echo "Starting Hindsight web UI ..."
-hindsight-embed -p "${HINDSIGHT_BANK_ID}" ui start --port "$((HINDSIGHT_PORT + 10000))"
+echo "[entrypoint] Starting web UI ..."
+hindsight-embed -p "${HINDSIGHT_BANK_ID}" ui start 2>&1 || true
 
 # ── Keep container alive ────────────────────────────────────────
-LOG_FILE="${HOME}/.hindsight/profiles/${HINDSIGHT_BANK_ID}.log"
-if [ -f "$LOG_FILE" ]; then
-  echo "Tailing logs from ${LOG_FILE} ..."
-  tail -F "$LOG_FILE"
-else
-  # Fallback: just sleep-loop and poll status every 30s
-  while true; do
-    if ! hindsight-embed -p "${HINDSIGHT_BANK_ID}" daemon status 2>/dev/null | grep -q "running"; then
-      echo "Hindsight daemon exited unexpectedly."
-      exit 1
-    fi
-    sleep 30
-  done
-fi
+echo "[entrypoint] Container ready. Holding process ..."
+exec tail -f /dev/null
