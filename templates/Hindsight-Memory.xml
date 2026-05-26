@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Container version="2">
+  <Name>Hindsight-Memory</Name>
+  <Repository>ghcr.io/sascha005/hindsight-unraid:latest</Repository>
+  <Registry>https://github.com/sascha005/hindsight-unraid/pkgs/container/hindsight-unraid</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/sascha005/hindsight-unraid/issues</Support>
+  <Project>https://github.com/sascha005/hindsight-unraid</Project>
+  <Overview>Hindsight local-embedded memory server for Hermes Agent. Connects to Ollama, Postgres optional. Fully self-hosted, data never leaves your network.</Overview>
+  <Category>AI: Tools:Other</Category>
+  <WebUI>http://[IP]:[PORT:10888]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/sascha005/hindsight-unraid/main/templates/Hindsight-Memory.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/sascha005/hindsight-unraid/main/assets/icon.png</Icon>
+  <ExtraParams>--restart unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Hindsight Data" Target="/opt/hindsight-data" Default="/mnt/user/appdata/hindsight-memory/data" Mode="rw" Description="Persistent memory data" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/hindsight-memory/data</Config>
+  <Config Name="Hindsight Port" Target="8888" Default="8888" Mode="tcp" Description="Hindsight server port" Type="Port" Display="always" Required="true" Mask="false">8888</Config>
+  <Config Name="Hindsight UI Port" Target="18888" Default="10888" Mode="tcp" Description="Hindsight web UI port" Type="Port" Display="always" Required="true" Mask="false">10888</Config>
+  <Config Name="OLLAMA_BASE_URL" Target="HINDSIGHT_LLM_BASE_URL" Default="http://ollama:11434" Mode="" Description="URL of your running Ollama instance" Type="Variable" Display="always" Required="true" Mask="false">http://192.168.179.171:11434</Config>
+  <Config Name="LLM Model" Target="HINDSIGHT_LLM_MODEL" Default="gemma3" Mode="" Description="Model name on Ollama" Type="Variable" Display="advanced" Required="false" Mask="false">gemma3</Config>
+  <Config Name="LLM Provider" Target="HINDSIGHT_LLM_PROVIDER" Default="ollama" Mode="" Description="LLM provider type" Type="Variable" Display="advanced" Required="false" Mask="false">ollama</Config>
+  <Config Name="Bank ID" Target="HINDSIGHT_BANK_ID" Default="hermes" Mode="" Description="Memory bank name" Type="Variable" Display="advanced" Required="false" Mask="false">hermes</Config>
+  <Config Name="Recall Budget" Target="HINDSIGHT_RECALL_BUDGET" Default="mid" Mode="" Description="Recall thoroughness: low/mid/high" Type="Variable" Display="advanced" Required="false" Mask="false">mid</Config>
+  <Config Name="Auto Recall" Target="HINDSIGHT_AUTO_RECALL" Default="true" Mode="" Description="Auto-recall memories before each turn" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="Auto Retain" Target="HINDSIGHT_AUTO_RETAIN" Default="true" Mode="" Description="Auto-retain conversation turns" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+</Container>
